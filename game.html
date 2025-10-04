@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emoji Quiz Game</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #89f7fe, #66a6ff);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 { margin-bottom: 10px; }
+  #score { margin-bottom: 10px; font-size: 20px; }
+  #level { margin-bottom: 20px; font-size: 18px; }
+  #emoji { font-size: 50px; margin-bottom: 20px; text-align: center; }
+  .answers { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+  .answers button {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: 0.2s;
+  }
+  .answers button:hover { background-color: #f0f0f0; }
+  #nextBtn { padding: 10px 20px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; background-color: #ffce00; }
+</style>
+</head>
+<body>
+
+<h1>Emoji Quiz Game</h1>
+<div id="score">Score: 0</div>
+<div id="level">Level: 1</div>
+<div id="emoji">❓</div>
+<div class="answers" id="answers"></div>
+<button id="nextBtn" style="display:none;">Next Level</button>
+
+<script>
+/********* Level Data *********/
+// Single emoji (Lvls 1-10)
+const singleEmojiLevels = [
+  { emoji: "🍎", answer: "Apple" },
+  { emoji: "🚗", answer: "Car" },
+  { emoji: "🐶", answer: "Dog" },
+  { emoji: "🍕", answer: "Pizza" },
+  { emoji: "⚽", answer: "Football" },
+  { emoji: "🌞", answer: "Sun" },
+  { emoji: "🌧️", answer: "Rain" },
+  { emoji: "🎵", answer: "Music" },
+  { emoji: "✈️", answer: "Plane" },
+  { emoji: "📚", answer: "Book" }
+];
+
+// Two emojis (Lvls 11-50)
+const doubleEmojiLevels = [
+  { emoji: "🍎🍌", answer: "Fruits" },
+  { emoji: "🐶🐱", answer: "Pets" },
+  { emoji: "🍕🍔", answer: "Fast Food" },
+  { emoji: "⚽🏀", answer: "Sports" },
+  { emoji: "🌞🌙", answer: "Sky" },
+  { emoji: "🌧️⛈️", answer: "Rainy" },
+  { emoji: "🎵🎤", answer: "Music" },
+  { emoji: "✈️🛳️", answer: "Vehicles" },
+  { emoji: "📚📝", answer: "Study" },
+  { emoji: "🎂🍩", answer: "Desserts" },
+  { emoji: "🚀🛸", answer: "Space" },
+  { emoji: "🏡🏰", answer: "Buildings" },
+  { emoji: "🌈☁️", answer: "Weather" },
+  { emoji: "🚌🚴", answer: "Transport" },
+  { emoji: "🎧🎹", answer: "Instruments" },
+  { emoji: "🍓🍇", answer: "Berries" },
+  { emoji: "🐸🐢", answer: "Animals" },
+  { emoji: "🍫🍦", answer: "Sweets" },
+  { emoji: "🎁🎉", answer: "Celebration" },
+  { emoji: "🏓🏐", answer: "Games" },
+  { emoji: "🦁🐼", answer: "Wild Animals" },
+  { emoji: "🍍🥭", answer: "Tropical Fruits" },
+  { emoji: "🏔️🏝️", answer: "Landscapes" },
+  { emoji: "🌊🏞️", answer: "Nature" },
+  { emoji: "🐰🐒", answer: "Cute Animals" },
+  { emoji: "🥗🥩", answer: "Food" },
+  { emoji: "📷🎨", answer: "Hobbies" },
+  { emoji: "🎤🎧", answer: "Music Gear" },
+  { emoji: "🚒🚑", answer: "Emergency Vehicles" },
+  { emoji: "🛳️🚁", answer: "Transport Vehicles" },
+  { emoji: "🦄🦖", answer: "Fantasy Creatures" },
+  { emoji: "🍉🍓", answer: "Fruits Mix" },
+  { emoji: "🐢🐍", answer: "Reptiles" },
+  { emoji: "🏖️🏜️", answer: "Hot Places" },
+  { emoji: "🎹🎻", answer: "Instruments" },
+  { emoji: "🥨🥯", answer: "Breads" },
+  { emoji: "🛹🛷", answer: "Sports Equipment" },
+  { emoji: "🦋🦚", answer: "Beautiful Animals" }
+];
+
+// Three emojis (Lvls 51-90)
+const tripleEmojiLevels = [
+  { emoji: "🍎🍌🍓", answer: "Fruits Combo" },
+  { emoji: "🐶🐱🐰", answer: "Pets Trio" },
+  { emoji: "⚽🏀🏐", answer: "Balls" },
+  { emoji: "🍕🍔🍟", answer: "Fast Foods" },
+  { emoji: "🌞🌙🌈", answer: "Sky Elements" },
+  { emoji: "🌧️⛈️☔", answer: "Rainy Weather" },
+  { emoji: "🎵🎤🎧", answer: "Music Set" },
+  { emoji: "🚗🚀✈️", answer: "Transport" },
+  { emoji: "📚📝📖", answer: "Study Items" },
+  { emoji: "🎂🍩🍪", answer: "Desserts Combo" },
+  { emoji: "🏔️🏝️🏖️", answer: "Scenery" },
+  { emoji: "🐸🐍🐢", answer: "Reptiles & Amphibians" },
+  { emoji: "🦁🐼🐨", answer: "Wild Animals Trio" },
+  { emoji: "🍍🥭🥝", answer: "Tropical Fruits Mix" },
+  { emoji: "🏰🏡🏠", answer: "Buildings" },
+  { emoji: "🛳️🚁🛵", answer: "Vehicles Trio" },
+  { emoji: "🦄🦖🦕", answer: "Fantasy Creatures Trio" },
+  { emoji: "🎹🎻🎸", answer: "Musical Instruments" },
+  { emoji: "🥨🥯🍞", answer: "Breads Mix" },
+  { emoji: "🍉🍇🍓", answer: "Fruits Mix 2" },
+  { emoji: "🐢🐍🐙", answer: "Animals Mix" },
+  { emoji: "🏖️🏔️🏜️", answer: "Nature Mix" },
+  { emoji: "🎯🎲🎪", answer: "Games Fun" },
+  { emoji: "🦋🦚🦩", answer: "Colorful Animals" },
+  { emoji: "🍗🥩🥓", answer: "Meat" },
+  { emoji: "🚂🚤🛶", answer: "Transport Mix" },
+  { emoji: "🦦🦔🦉", answer: "Animals Trio" },
+  { emoji: "🥝🥑🥕", answer: "Food Trio" },
+  { emoji: "🛴🛹🛷", answer: "Sports Equipment" },
+  { emoji: "🍦🍫🍪", answer: "Sweets Trio" },
+  { emoji: "🐋🐠🐟", answer: "Sea Animals" },
+  { emoji: "🏰🏝️🏖️", answer: "Places" },
+  { emoji: "🎿🏂🏹", answer: "Sports Activities" },
+  { emoji: "🦒🦓🦘", answer: "Wild Animals" },
+  { emoji: "🥭🍍🍌", answer: "Tropical Fruits 2" },
+  { emoji: "🛸🚀✈️", answer: "Flying Vehicles" },
+  { emoji: "🎁🎉🎈", answer: "Celebration" },
+  { emoji: "🐝🦋🦚", answer: "Nature Animals" }
+];
+
+// Four emojis (Lvls 91-100)
+const quadrupleEmojiLevels = [
+  { emoji: "🍎🍌🍓🍉", answer: "Fruits Explosion" },
+  { emoji: "🐶🐱🐰🐹", answer: "Pets Squad" },
+  { emoji: "⚽🏀🏐🎾", answer: "Sports Ball Set" },
+  { emoji: "🍕🍔🍟🌭", answer: "Fast Food Feast" },
+  { emoji: "🌞🌙🌈☁️", answer: "Sky Combo" },
+  { emoji: "🎵🎤🎧🎸", answer: "Music Instruments" },
+  { emoji: "🚗🚀✈️🛳️", answer: "Vehicles Set" },
+  { emoji: "📚📝📖🎓", answer: "Study Set" },
+  { emoji: "🎂🍩🍪🍫", answer: "Desserts Feast" },
+  { emoji: "🦄🦖🦕🐉", answer: "Fantasy Creatures" }
+];
+
+// Combine all levels
+const levels = [...singleEmojiLevels, ...doubleEmojiLevels, ...tripleEmojiLevels, ...quadrupleEmojiLevels];
+
+// Shuffle levels except for progressive difficulty
+function shuffleOptions(array){ return array.sort(()=>Math.random()-0.5); }
+
+let currentLevel = parseInt(localStorage.getItem("currentLevel")) || 0;
+let score = parseInt(localStorage.getItem("score")) || 0;
+
+const emojiDiv = document.getElementById("emoji");
+const answersDiv = document.getElementById("answers");
+const nextBtn = document.getElementById("nextBtn");
+const scoreDiv = document.getElementById("score");
+const levelDiv = document.getElementById("level");
+
+function generateOptions(correct){
+  const options = [correct];
+  while(options.length < 4){
+    const randomOption = levels[Math.floor(Math.random()*levels.length)].answer;
+    if(!options.includes(randomOption)){
+      options.push(randomOption);
+    }
+  }
+  return shuffleOptions(options);
+}
+
+function loadLevel(){
+  if(currentLevel >= levels.length){
+    alert("🎉 Congratulations! You completed all 100 levels!");
+    currentLevel = 0;
+    score = 0;
+    localStorage.clear();
+  }
+  const levelData = levels[currentLevel];
+  emojiDiv.textContent = levelData.emoji;
+  const options = generateOptions(levelData.answer);
+  answersDiv.innerHTML = "";
+  options.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.textContent = opt;
+    btn.onclick = ()=>checkAnswer(opt);
+    answersDiv.appendChild(btn);
+  });
+  nextBtn.style.display = "none";
+  levelDiv.textContent = "Level: " + (currentLevel + 1);
+}
+
+function checkAnswer(selected){
+  const correctAnswer = levels[currentLevel].answer;
+  if(selected === correctAnswer){
+    score += 1;
+    scoreDiv.textContent = "Score: " + score;
+    localStorage.setItem("score", score);
+    nextBtn.style.display = "block";
+  } else {
+    alert("❌ Wrong! Try again from this level.");
+    score = Math.max(0, score-1);
+    scoreDiv.textContent = "Score: " + score;
+    localStorage.setItem("score", score);
+    loadLevel();
+  }
+}
+
+nextBtn.onclick = ()=>{
+  currentLevel += 1;
+  localStorage.setItem("currentLevel", currentLevel);
+  loadLevel();
+}
+
+// Initial load
+scoreDiv.textContent = "Score: " + score;
+loadLevel();
+</script>
+
+</body>
+</html>
